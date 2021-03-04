@@ -145,3 +145,21 @@ def plot_graph(NO_OF_GENERATIONS, generation_errors, target_directory):
 	ax.legend()  # Add a legend
 	fig.savefig("{}/plot.png".format(target_directory))
 	fig.show()
+	
+def select_the_best(rank_array, POPULATION_SIZE, x): # x -> 
+    final_parents = []
+    for i in range(POPULATION_SIZE):
+        if rank_array[i] <= x:
+            final_parents.append(i)
+    return final_parents
+
+def return_elite(rank_array, POPULATION_SIZE, x):
+    elite_par = []
+    for i in range(POPULATION_SIZE):
+        if rank_array[i] <= x:
+            elite_par.append(i)
+    return elite_par
+
+def list_to_array(list):
+    list = np.array(list)
+    return list
