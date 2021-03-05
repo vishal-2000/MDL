@@ -52,7 +52,7 @@ def get_train_validation_errors(SECRET_KEY, POPULATION_SIZE, params):
 
 # Calculates fitness and return the array of fitness scores
 def fitness(train_validation_error):
-    fitness_score = -1 * train_validation_error[:, 1] 
+    fitness_score = -1 * train_validation_error[:, 1] - (train_validation_error[:, 1] - train_validation_error[:, 0])
     return fitness_score
 
 # Ranks the parents according to their fitness scores
