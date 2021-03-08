@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from client import get_errors
 from io import StringIO
 from config import SECRET_KEY
-from utils import POPULATION_SIZE, SPLIT_POINT, FEATURE_VECTOR_SIZE, MUTATION_COEFF
+from utils import POPULATION_SIZE, SPLIT_POINT, FEATURE_VECTOR_SIZE, MUTATION_COEFF, CROSS_OVER_SWAP_COEFFICIENTT
 
 from errno import EEXIST
 from os import makedirs, path
@@ -20,6 +20,12 @@ def mkdir_p(mypath):
             pass
         else: raise
         
+def return_order(x):
+	st = "{:e}".format(x)
+	#print(st)
+	#print(st[-2], st[-1])
+	return int(st[-2] + st[-1])
+        
 # Initialize parameters
 def initialize_params():
 	file = open("overfit.txt", "r")
@@ -33,15 +39,26 @@ def initialize_params():
 	str1 = StringIO(str1)
 	# Extracting the parameters from the string and putting them in a list
 	init_overfit_params = list(np.loadtxt(str1, dtype=float, delimiter=',')) 
+	# init_overfit_params = [0.00000000e+00,
+     # -9.75835723e+00,
+      # -2.28980078e-13,
+      #1.07109860e+00,
+      #-1.75214813e-10,
+      #-1.83669770e-15,
+      # 8.52944060e-16,
+      # 2.29423303e-05,
+      #-2.04721003e-06,
+      #-1.59792834e-08,
+      #9.98214034e-10] # the best vector among all that we have
 	
-	np.random.seed(40)
+	#np.random.seed(40)
 	#params = np.random.uniform(-9, 10, size=(11, POPULATION_SIZE))
 	params = np.zeros(shape=(11, POPULATION_SIZE), dtype=float)
 	for i in range(POPULATION_SIZE):
 		np.copyto(params[:, i], init_overfit_params)
 	init_params = np.zeros(shape= (11, POPULATION_SIZE))
 	for i in range(POPULATION_SIZE):
-		init_params[:, i] += mutate(params[:, i], 0.1)
+		init_params[:, i] += mutate(params[:, i], 0.1, 0.1)
 	#np.copyto(init_params, params)
 	print(init_params)
 	return init_overfit_params, init_params
@@ -53,6 +70,7 @@ def get_train_validation_errors(SECRET_KEY, POPULATION_SIZE, params):
 # Calculates fitness and return the array of fitness scores
 def fitness(train_validation_error):
     fitness_score = -1 * train_validation_error[:, 1] - (train_validation_error[:, 1] - train_validation_error[:, 0])
+    #fitness_score = -1 * (abs(train_validation_error[:, 1] - train_validation_error[:, 0])**2)*((train_validation_error[:, 1] + train_validation_error[:, 0]))
     return fitness_score
 
 # Ranks the parents according to their fitness scores
@@ -105,11 +123,25 @@ def cross_over(parent1, parent2, SPLIT_POINT):
     offspring1 = np.zeros(shape=(11))
     offspring2 = np.zeros(shape=(11))
     
-    offspring1[0:SPLIT_POINT] += parent1[0:SPLIT_POINT]
-    offspring1[SPLIT_POINT:] += parent2[SPLIT_POINT:]
+    for i in range(11):
+    	p = np.random.uniform(0, 1)
+    	if p <= CROSS_OVER_SWAP_COEFFICIENTT:
+    		offspring1[i] = parent2[i]
+    	else:
+    		offspring1[i] = parent1[i]
+    		
+    for i in range(11):
+    	p = np.random.uniform(0, 1)
+    	if p <= CROSS_OVER_SWAP_COEFFICIENTT:
+    		offspring2[i] = parent1[i]
+    	else:
+    		offspring2[i] = parent2[i]
+    		
+    #offspring1[0:SPLIT_POINT] += parent1[0:SPLIT_POINT]
+    #offspring1[SPLIT_POINT:] += parent2[SPLIT_POINT:]
     
-    offspring2[0:SPLIT_POINT] += parent2[0:SPLIT_POINT]
-    offspring2[SPLIT_POINT:] += parent1[SPLIT_POINT:]
+    #offspring2[0:SPLIT_POINT] += parent2[0:SPLIT_POINT]
+    #offspring2[SPLIT_POINT:] += parent1[SPLIT_POINT:]
     #for i in range(SPLIT_POINT):
     #    offspring1[i] = parent1[i]
     #    offspring2[i] = parent2[i]
@@ -117,15 +149,27 @@ def cross_over(parent1, parent2, SPLIT_POINT):
     #    offspring1[i] = parent2[i]
     #    offspring2[i] = parent1[i]
     return offspring1, offspring2
+    
+def single_mutate(x, mutation_coeff, variance_coeff):
+	p = np.random.normal(mutation_coeff, variance_coeff)
+	if p <= mutation_coeff:
+		order = return_order(x)
+		s1 = "-5.00e-{}".format(order+1)
+		s2 = "5.00e-{}".format(order+1)
+		x = x + np.random.uniform(float(s1), float(s2))
+	return x
 
 # Mutates the child offsprings
-def mutate(offspring, mutation_coeff = 0.1): # default 0.1
+def mutate(offspring, mutation_coeff = 0.1, variance_coeff = 0.2): # default 0.1
+    #p = np.random.normal(MUTATION_COEFF, variance_coeff, 11)
+    # p = np.random.uniform(0, 1, size=(11))
+    #a = np.abs(np.floor(np.add(p, -1*mutation_coeff))) # one where p < 0.1 and zero where p > 0.1
+    #b = np.abs(np.ceil(np.add(p, -1*mutation_coeff))) # zero where p < 0.1 and one where p > 0.1
+    #c = np.random.uniform(-9, 9, size=(11))
+    #offspring = offspring*b + a*c
     
-    p = np.random.uniform(0, 1, size=(11))
-    a = np.abs(np.floor(np.add(p, -1*mutation_coeff))) # one where p < 0.1 and zero where p > 0.1
-    b = np.abs(np.ceil(np.add(p, -1*mutation_coeff))) # zero where p < 0.1 and one where p > 0.1
-    c = np.random.uniform(-10, 10, size=(11))
-    offspring = offspring*b + a*c
+    vec_mutate = np.vectorize(single_mutate)
+    offspring = vec_mutate(offspring, mutation_coeff, variance_coeff)
     
     #for i in range(offspring.size):
     #    p = np.random.uniform(0, 1)
@@ -163,3 +207,33 @@ def return_elite(rank_array, POPULATION_SIZE, x):
 def list_to_array(list):
     list = np.array(list)
     return list
+    
+from datetime import date
+import os
+
+def file_name():
+    filepath="Results/"
+    today = date.today()
+    date_part = str(today.month) + "-"
+
+    if today.day < 10:
+        date_part += "0" + str(today.day)
+    if today.day >= 10:
+        date_part += str(today.day)
+
+    filepath += date_part
+
+    if os.path.exists(filepath) == False:
+        os.mkdir(filepath)
+    
+    flag = True
+    current = 1
+
+    while flag:
+        temp_filepath = filepath + "/run" + str(current) + ".txt"
+        if os.path.exists(temp_filepath) == False:
+            filepath = temp_filepath
+            flag=False
+        current += 1
+    
+    return filepath

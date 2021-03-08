@@ -1,0 +1,8 @@
+Fitness funtion: -1 * (train_validation_error[:, 1] + train_validation_error[:, 0])
+Initialed with the best that we have until now
+Starting all over again with new root population
+No of generations: 10
+Population size: 10
+Mutation coefficient: 0.2
+Split point: 7
+Two offspring per pair
