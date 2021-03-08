@@ -58,7 +58,7 @@ def initialize_params():
 		np.copyto(params[:, i], init_overfit_params)
 	init_params = np.zeros(shape= (11, POPULATION_SIZE))
 	for i in range(POPULATION_SIZE):
-		init_params[:, i] += mutate(params[:, i], 0.1, 0.1)
+		init_params[:, i] += mutate(params[:, i], 0.2, 0.1)
 	#np.copyto(init_params, params)
 	print(init_params)
 	return init_overfit_params, init_params
@@ -69,8 +69,9 @@ def get_train_validation_errors(SECRET_KEY, POPULATION_SIZE, params):
 
 # Calculates fitness and return the array of fitness scores
 def fitness(train_validation_error):
-    fitness_score = -1 * train_validation_error[:, 1] - (train_validation_error[:, 1] - train_validation_error[:, 0])
+    #fitness_score = -1 * train_validation_error[:, 1] - (train_validation_error[:, 1] - train_validation_error[:, 0])
     #fitness_score = -1 * (abs(train_validation_error[:, 1] - train_validation_error[:, 0])**2)*((train_validation_error[:, 1] + train_validation_error[:, 0]))
+    fitness_score = -1 * train_validation_error[:, 0]
     return fitness_score
 
 # Ranks the parents according to their fitness scores
@@ -154,8 +155,8 @@ def single_mutate(x, mutation_coeff, variance_coeff):
 	p = np.random.normal(mutation_coeff, variance_coeff)
 	if p <= mutation_coeff:
 		order = return_order(x)
-		s1 = "-5.00e-{}".format(order+1)
-		s2 = "5.00e-{}".format(order+1)
+		s1 = "-9.00e-{}".format(order+1)
+		s2 = "9.00e-{}".format(order+1)
 		x = x + np.random.uniform(float(s1), float(s2))
 	return x
 
