@@ -59,6 +59,14 @@ Solve the given MDP problem using Linear programming
     - Shoot:
         - p(Success) = 0.25
         - Damage = 25
+## Parameters
+- Step cost = -10/Y
+- arr = [1/2, 1, 2]
+- Y = arr[X mod 3] 
+- X: team number (97)
+- Gamma = (Discount factor) 0.999
+- Delta = (Convergence or bellman error) 10^(-3)
+
 ## MM notes
 - MM has finite health (max = 100) 
 - The episode will end once MM has 0 health
@@ -77,7 +85,7 @@ Solve the given MDP problem using Linear programming
             - MM will regain 25 health
             - If IJ had planned to take any action at this step, it would be unsuccessful. IJ will get a -ve reward of -40. 
 ## IJ notes
-- Recieves reward (50) once the MM dies
+- Recieves reward (50) once the MM dies (No reward to be considered for part 3)
 - Has infinite health
 - Has a BOW and BLADE to attack MM
 ### Constraints
